@@ -4,7 +4,7 @@
   <title>Sub Follow</title>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
-  <script src="/twitch.js"></script>
+  <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 
   <script>
     window.CLIENT_ID = 'kee5ygdwscdgp0qyo9sm9lszqghqu8x';
@@ -72,21 +72,12 @@
 
       $('#follow-your-subs button').click(function() {
 
-        var targetUser;
+        Twitch.api({method: '/users/:user/follows/channels/:target'})
 
-        for (var i = 0; i < user_names.length; i++) {
+      })
 
-        targetUser = user_names[i];
-        Twitch.api({method: 'users/' + ourUser + '/follows/channels/' + targetUser, verb: 'PUT' }, function(error, response){
-          if(typeof error !== 'undefined'){
-            console.log(error);
-          }
-        });
 
-      }
     });
-  });
-
   </script>
 
   <style type="text/css">
