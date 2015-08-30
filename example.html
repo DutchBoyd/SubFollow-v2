@@ -2,12 +2,13 @@
 <head>
   <meta charset="utf-8">
   <title>Sub Follow</title>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="/jquery.min.js"></script>
 
   <script src="/twitch.js"></script>
 
   <script>
     window.CLIENT_ID = 'kee5ygdwscdgp0qyo9sm9lszqghqu8x';
+
     $(function() {
       // Initialize. If we are already logged in, there is no
       // need for the connect button
@@ -27,7 +28,7 @@
         }
       });
 
-
+      // Logging in to Twitch
       $('.twitch-connect').click(function() {
         Twitch.login({
           scope: ['user_read', 'channel_read', 'user_follows_edit', 'channel_subscriptions']
@@ -35,6 +36,7 @@
 
       })
 
+      // Logging out of Twitch
       $('#logout button').click(function() {
         Twitch.logout();
 
@@ -54,7 +56,7 @@
           ourUser = user.display_name;
         });
 
-          Twitch.api({method: '/channels/DutchBoyd/subscriptions'}, function(error, subResponse) {
+          Twitch.api({method: '/channels/DutchBoyd/subscriptions', params: {limit: 100, offset: 500}}, function(error, subResponse) {
           $('#get-sub-count input').val(subResponse._total);
           console.log(subResponse);
           
