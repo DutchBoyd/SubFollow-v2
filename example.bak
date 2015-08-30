@@ -4,7 +4,7 @@
   <title>Sub Follow</title>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 
-  <script src="/twitch.js"></script>
+  <script src="https://ttv-api.s3.amazonaws.com/twitch.min.js"></script>
 
   <script>
     window.CLIENT_ID = 'kee5ygdwscdgp0qyo9sm9lszqghqu8x';
@@ -32,7 +32,11 @@
         Twitch.login({
           scope: ['user_read', 'channel_read', 'user_follows_edit', 'channel_subscriptions']
         });
-
+        Twitch.api({method: 'user'}, function(error, user) {
+          $('#get-name input').val(user.display_name);
+          var ourUser = user.display_name;
+          console.log(ourUser);
+        });
       })
 
       $('#logout button').click(function() {
@@ -43,21 +47,22 @@
         window.location = window.location.pathname
       })
 
-      // declaring ourUser variable
-      var ourUser;
-      var user_names = [];
-      var subscription;
+      
 
-
-      $('#get-the-subs button').click(function() {
-          Twitch.api({method: 'user'}, function(error, user) {
-          ourUser = user.display_name;
+      $('#get-stream-key button').click(function() {
+        Twitch.api({method: 'channel'}, function(error, channel) {
+          $('#get-stream-key input').val(channel.stream_key);
         });
+      })
 
-          Twitch.api({method: '/channels/DutchBoyd/subscriptions'}, function(error, subResponse) {
+// 
+
+      $('#get-sub-count button').click(function() {
+        Twitch.api({method: '/channels/DutchBoyd/subscriptions'}, function(error, subResponse) {
           $('#get-sub-count input').val(subResponse._total);
           console.log(subResponse);
-          
+          var user_names = [];
+          var subscription;
           // iterating over the subscriptions objects and pulling the subscribed usernames into an array
           for (var i = 0; i < subResponse.subscriptions.length; i++) {
             subscription = subResponse.subscriptions[i];
@@ -67,26 +72,28 @@
           console.log(user_names);
 
         });
-      })
+      })      
 
+      $('#get-follow-count button').click(function() {
+        Twitch.api({method: 'channel'}, function(error, channel) {
+          $('#get-follow-count input').val(channel.followers);
+        });
+      })    
+
+      $('#get-streams-followed button').click(function() {
+        Twitch.api({method: '/streams/followed'}, function(error, streams) {
+          $('#get-streams-followed input').val(streams._total);
+        });
+      })     
 
       $('#follow-your-subs button').click(function() {
 
-        var targetUser;
+        Twitch.api({method: '/users/:user/follows/channels/:target'})
 
-        for (var i = 0; i < user_names.length; i++) {
+      })
 
-        targetUser = user_names[i];
-        Twitch.api({method: 'users/' + ourUser + '/follows/channels/' + targetUser, verb: 'PUT' }, function(error, response){
-          if(typeof error !== 'undefined'){
-            console.log(error);
-          }
-        });
 
-      }
     });
-  });
-
   </script>
 
   <style type="text/css">
@@ -110,8 +117,28 @@
         <button>Log Out</button>
       </div>
 
-      <div id="get-the-subs">
-        <button>Get Your Subscribers</button>
+      <div id="get-name">
+        <button>Get TwitchTV Name</button>
+        <input readonly="readonly" size="50" value="Unknown"/>
+      </div>
+
+      <div id="get-stream-key">
+        <button>Get TwitchTV Stream Key</button>
+        <input readonly="readonly" size="50" value="Unknown"/>
+      </div>
+
+      <div id="get-sub-count">
+        <button>Get Subscriber Count</button>
+        <input readonly="readonly" size="50" value="Unknown"/>
+      </div>
+
+      <div id="get-follow-count">
+        <button>Get Follower Count</button>
+        <input readonly="readonly" size="50" value="Unknown"/>
+      </div>
+
+      <div id="get-streams-followed">
+        <button>Get Streams Followed Total</button>
         <input readonly="readonly" size="50" value="Unknown"/>
       </div>
 
