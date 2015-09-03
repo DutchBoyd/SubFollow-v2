@@ -3,24 +3,31 @@
   <meta charset="utf-8">
   <title>Sub Follow</title>
   <script src="/jquery.min.js"></script>
-
   <script src="/twitch.js"></script>
 
   <script>
     window.CLIENT_ID = 'kee5ygdwscdgp0qyo9sm9lszqghqu8x';
+    // declaring variables
+    var ourUser = "";
+    var user_names = [];
+    var subscription;
 
     $(function() {
       // Initialize. If we are already logged in, there is no
       // need for the connect button
       Twitch.init({
         clientId: CLIENT_ID,
-        redirect_uri: 'http://www.subfollow.com/example.html'
+        redirect_uri: 'subfollow.com/example.html'
       }, function(error, status) {
         if (status.authenticated) {
           // we're logged in :)
           $('.status input').val('Logged in! Allowed scope: ' + status.scope);
           // Show the data for logged-in users
           $('.authenticated').removeClass('hidden');
+          // Pull our user's username into local variable ourUser
+          Twitch.api({method: 'user'}, function(error, user) {
+          ourUser = user.display_name;
+          });
         } else {
           $('.status input').val('Not Logged in! Better connect with Twitch!');
           // Show the twitch connect button
@@ -45,36 +52,78 @@
         window.location = window.location.pathname
       })
 
-      // declaring ourUser variable
-      var ourUser;
-      var user_names = [];
-      var subscription;
-
-
       $('#get-the-subs button').click(function() {
-          Twitch.api({method: 'user'}, function(error, user) {
-          ourUser = user.display_name;
-        });
+          // Moving the user.display_name collection to the beginning upon authentication
+          // Twitch.api({method: 'user'}, function(error, user) {
+          // ourUser = user.display_name;
+          // });
+          // Going to need to build a loop here and change the offset with a variable increasing by 100
+          // until the subResponse.subscriptions is < 100 (but more than 0)
 
-          Twitch.api({method: '/channels/DutchBoyd/subscriptions', params: {limit: 100, offset: 500}}, function(error, subResponse) {
-          $('#get-sub-count input').val(subResponse._total);
-          console.log(subResponse);
+          var offsetVariable = 0;
+          var moreSubs = 0;
+          var totalSubs = 0;
           
-          // iterating over the subscriptions objects and pulling the subscribed usernames into an array
-          for (var i = 0; i < subResponse.subscriptions.length; i++) {
-            subscription = subResponse.subscriptions[i];
-            user_names.push(subscription.user.name);
+          // Somewhere here is where we need to loop until the Twitch.api response is returned and 
+          // the ourUser variable is defined. The following code didn't work.
 
-          }
-          console.log(user_names);
+          // var responseLoop = 0;
+          // while (ourUser.length = 0 || responseLoop < 300 ) {
+          //   setTimeout(function() {responseLoop += 10}, 10);
+          // }
 
-        });
+
+          gatherSubs();
+
+          function gatherSubs() {
+
+              Twitch.api({method: '/channels/' + ourUser + '/subscriptions', params: {limit: 100, offset: offsetVariable}}, function(error, subResponse) {
+              totalSubs = subResponse._total;
+              
+              
+              console.log('Offset Variable : ' + offsetVariable);
+              console.log('subResponse : ' + subResponse);
+              console.log('Total Subs (2): ' + totalSubs);
+              
+              // iterating over the subscriptions objects and pulling the subscribed usernames into an array
+              for (var i = 0; i < subResponse.subscriptions.length; i++) {
+                subscription = subResponse.subscriptions[i];
+                user_names.push(subscription.user.name);
+              }
+
+              // adding the progress to the gatherSubs status bar              
+              $('#get-the-subs input').val('Adding ' + user_names.length + ' of ' + totalSubs);
+              if (user_names.length === totalSubs) {
+                $('#get-the-subs input').val('Adding ' + user_names.length + ' of ' + totalSubs + ' - COMPLETED!');
+              }
+              
+              offsetVariable += 100;
+              console.log('The user names collected are : ' + user_names);
+              moreSubs = totalSubs - offsetVariable;
+              console.log('Total Subs (1): ' + totalSubs);
+              console.log('Offset Variable: ' + offsetVariable);
+              console.log('More subs variable: ' + moreSubs);
+
+              // Making the function recursive in order get around rate limit
+              if (moreSubs > 0) {
+                gatherSubs();
+              } 
+
+
+              });
+
+          };
+
       })
 
 
       $('#follow-your-subs button').click(function() {
+//      Having issues with updating the status bar. Worked around in the getSubs function by making it recursive and keeping
+//      updates within the Twitch.api call. 
+
 
         var targetUser;
+//        var totalSubs = user_names.length;
 
         for (var i = 0; i < user_names.length; i++) {
 
@@ -83,6 +132,8 @@
           if(typeof error !== 'undefined'){
             console.log(error);
           }
+//          $('#follow-your-subs input').val('Following ' + i + ' of ' + totalSubs);
+
         });
 
       }
@@ -97,11 +148,14 @@
   }
   </style>
 </head>
+
+
 <body>
   <h1><a href=/>Sub Follow App</a></h1>
     <div class="status">
       Status: <input readonly="readonly" size="60" val="Unknown"/>
     </div>
+
     <div class="authenticate hidden">
       <img src="http://ttv-api.s3.amazonaws.com/assets/connect_dark.png" class="twitch-connect" href="#" />
     </div>
@@ -113,13 +167,15 @@
       </div>
 
       <div id="get-the-subs">
+        <br><br>
         <button>Get Your Subscribers</button>
-        <input readonly="readonly" size="50" value="Unknown"/>
+        <input readonly="readonly" size="50" value="Click button to start pulling subs"/>
       </div>
 
       <div id="follow-your-subs">
         <br><br>
         <button>Follow Your Subs!</button>
+        <input readonly="readonly" size="50" value="Click button to start following subs"/>
       </div>
 
 
