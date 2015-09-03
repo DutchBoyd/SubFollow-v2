@@ -1,0 +1,4 @@
+RewriteEngine On
+RewriteBase /
+RewriteCond %{HTTP_HOST} !^www.subfollow.com$ [NC]
+RewriteRule ^(.*)$ http://www.subfollow.com/$1 [L,R=301]
