@@ -123,20 +123,42 @@
 
 
         var targetUser;
-//        var totalSubs = user_names.length;
+        var totalSubs = user_names.length;
+        var rateLimit = 5;
 
-        for (var i = 0; i < user_names.length; i++) {
+        function followSubs(offset) {
+          
+          for (var i = offset; i < user_names.length; i++) {
 
-        targetUser = user_names[i];
-        Twitch.api({method: 'users/' + ourUser + '/follows/channels/' + targetUser, verb: 'PUT' }, function(error, response){
-          if(typeof error !== 'undefined'){
-            console.log(error);
+            targetUser = user_names[i];
+            Twitch.api({method: 'users/' + ourUser + '/follows/channels/' + targetUser, verb: 'PUT' }, function(error, response){
+              if(typeof error !== 'undefined'){
+                console.log(error);
+              }
+
+
+            });
+
+            if (i % rateLimit == 0) {
+              
+              setTimeout(function() { followSubs(i+1); }, 1000);
+              break;
+            }
           }
-//          $('#follow-your-subs input').val('Following ' + i + ' of ' + totalSubs);
 
-        });
+          var status = 'Following ' + i + ' of ' + totalSubs;
+          if (i == user_names.length) {
+            status += ' - Completed!';
+          }
 
-      }
+          $('#follow-your-subs input').val(status);
+
+        };
+
+        followSubs(0);
+
+
+
     });
   });
 
